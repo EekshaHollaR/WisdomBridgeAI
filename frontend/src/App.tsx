@@ -1,15 +1,13 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/DashboardPage';
+import DashboardPage from './pages/DashboardPage';
 import ExpertHomePage from './pages/Expert/ExpertHomePage';
 import ExpertInterviewPage from './pages/Expert/ExpertInterviewPage';
 import KnowledgeModulesListPage from './pages/Knowledge/KnowledgeModulesListPage';
 import KnowledgeModuleDetailPage from './pages/Knowledge/KnowledgeModuleDetailPage';
 import LearningPathsPage from './pages/Knowledge/LearningPathsPage';
-import MentorshipChatPage from './pages/Mentorship/MentorshipChatPage';
+import MentorshipHomePage from './pages/Mentorship/MentorshipHomePage';
+import MentorshipSessionPage from './pages/Mentorship/MentorshipSessionPage';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/Layout/ProtectedRoute';
 
@@ -18,20 +16,22 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+
           <Route path="/dashboard" element={
             <ProtectedRoute>
-              <Dashboard />
+              <DashboardPage />
             </ProtectedRoute>
           } />
+
           <Route path="/dashboard/expert" element={
             <ProtectedRoute>
               <ExpertHomePage />
             </ProtectedRoute>
           } />
-          <Route path="/dashboard/expert/session/:id" element={
+
+          <Route path="/dashboard/expert/interview/:sessionId?" element={
             <ProtectedRoute>
               <ExpertInterviewPage />
             </ProtectedRoute>
@@ -42,20 +42,28 @@ function App() {
               <KnowledgeModulesListPage />
             </ProtectedRoute>
           } />
+
           <Route path="/dashboard/knowledge/modules/:id" element={
             <ProtectedRoute>
               <KnowledgeModuleDetailPage />
             </ProtectedRoute>
           } />
+
           <Route path="/dashboard/learning-paths" element={
             <ProtectedRoute>
               <LearningPathsPage />
             </ProtectedRoute>
           } />
 
+          <Route path="/dashboard/mentorship" element={
+            <ProtectedRoute>
+              <MentorshipHomePage />
+            </ProtectedRoute>
+          } />
+
           <Route path="/dashboard/mentorship/session/:id" element={
             <ProtectedRoute>
-              <MentorshipChatPage />
+              <MentorshipSessionPage />
             </ProtectedRoute>
           } />
         </Routes>
