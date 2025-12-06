@@ -8,7 +8,7 @@ from .views import RegisterView, CurrentUserView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('me/', CurrentUserView.as_view(), name='current_user'),

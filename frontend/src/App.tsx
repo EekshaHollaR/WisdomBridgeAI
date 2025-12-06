@@ -1,19 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Dashboard from './pages/DashboardPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
-
-const Dashboard = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-4">Welcome, {user?.username} ({user?.role})</h1>
-      <p className="mb-4">This is your WisdomBridge Dashboard.</p>
-      <button onClick={logout} className="px-4 py-2 bg-red-500 text-white rounded">Logout</button>
-    </div>
-  );
-};
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -26,6 +17,7 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={
@@ -33,7 +25,6 @@ function App() {
               <Dashboard />
             </PrivateRoute>
           } />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </AuthProvider>
     </Router>

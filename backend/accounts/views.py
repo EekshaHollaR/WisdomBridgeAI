@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import UserRegistrationSerializer
+from .serializers import UserRegistrationSerializer, UserDetailSerializer
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -11,5 +11,5 @@ class CurrentUserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
-        serializer = UserRegistrationSerializer(request.user)
+        serializer = UserDetailSerializer(request.user)
         return Response(serializer.data)

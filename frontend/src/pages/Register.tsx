@@ -1,71 +1,118 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useNavigate, Link } from 'react-router-dom';
+import { MainLayout } from '../components/Layout/MainLayout';
+import { Card } from '../components/UI/Card';
+import { Input } from '../components/UI/Input';
+import { Button } from '../components/UI/Button';
 
 const Register: React.FC = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [role, setRole] = useState('LEARNER');
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        role: 'LEARNER'
+    });
+    const [profileData, setProfileData] = useState({
+        title: '', // For Expert
+        department: '', // For both
+        role_title: '', // For Learner
+    });
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/api/users/register/', { username, password, role });
+            const payload = {
+                ...formData,
+                profile_data: {
+                    department: profileData.department,
+                    ...(formData.role === 'EXPERT' ? { title: profileData.title } : { role_title: profileData.role_title })
+                }
+            };
+            await api.post('/api/auth/register/', payload);
             navigate('/login');
-        } catch (err) {
-            alert('Registration failed');
+        } catch (err: any) {
+            console.error(err);
+            setError('Registration failed. Please check your inputs.');
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Join WisdomBridge</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
-                        <input
+        <MainLayout>
+            <div className="max-w-xl mx-auto mt-10">
+                <Card>
+                    <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Join WisdomBridge</h2>
+                    {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+                    <form onSubmit={handleRegister} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Username"
+                                value={formData.username}
+                                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                required
+                            />
+                            <Input
+                                label="Email"
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <Input
+                            label="Password"
                             type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             required
                         />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Role</label>
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                        >
-                            <option value="LEARNER">Learner</option>
-                            <option value="EXPERT">Expert</option>
-                        </select>
-                    </div>
-                    <button
-                        type="submit"
-                        className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-sm transition duration-200"
-                    >
-                        Sign Up
-                    </button>
-                </form>
-                <p className="mt-4 text-center text-sm text-gray-600">
-                    Already have an account? <Link to="/login" className="text-indigo-600 hover:text-indigo-500">Login</Link>
-                </p>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
+                            <select
+                                value={formData.role}
+                                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="LEARNER">Learner (Junior Employee)</option>
+                                <option value="EXPERT">Expert (Senior/Retiring)</option>
+                            </select>
+                        </div>
+
+                        <div className="border-t pt-4 mt-4">
+                            <h3 className="text-md font-semibold mb-3 text-gray-700">Profile Details</h3>
+                            <div className="space-y-4">
+                                <Input
+                                    label="Department"
+                                    value={profileData.department}
+                                    onChange={(e) => setProfileData({ ...profileData, department: e.target.value })}
+                                />
+                                {formData.role === 'EXPERT' ? (
+                                    <Input
+                                        label="Job Title"
+                                        value={profileData.title}
+                                        onChange={(e) => setProfileData({ ...profileData, title: e.target.value })}
+                                    />
+                                ) : (
+                                    <Input
+                                        label="Current Role Title"
+                                        value={profileData.role_title}
+                                        onChange={(e) => setProfileData({ ...profileData, role_title: e.target.value })}
+                                    />
+                                )}
+                            </div>
+                        </div>
+
+                        <Button type="submit" className="w-full mt-6">Create Account</Button>
+                    </form>
+                    <p className="mt-4 text-center text-sm text-gray-600">
+                        Already have an account? <Link to="/login" className="text-indigo-600 hover:text-indigo-500">Login</Link>
+                    </p>
+                </Card>
             </div>
-        </div>
+        </MainLayout>
     );
 };
 
