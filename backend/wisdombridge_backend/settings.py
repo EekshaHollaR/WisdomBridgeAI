@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "knowledge",
     "mentorship",
     "assessment",
+    "analytics",
 ]
 
 MIDDLEWARE = [

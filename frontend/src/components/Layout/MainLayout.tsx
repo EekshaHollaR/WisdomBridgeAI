@@ -21,6 +21,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
                                 <Link to="/dashboard/mentorship" className="text-sm font-medium text-gray-700 hover:text-indigo-600">Mentorship</Link>
                                 <Link to="/dashboard/assessments" className="text-sm font-medium text-gray-700 hover:text-indigo-600">Assessments</Link>
                                 <Link to="/dashboard/expert/ask" className="text-sm font-medium text-gray-700 hover:text-indigo-600">Ask Expert</Link>
+                                <Link to="/dashboard/analytics" className="text-sm font-medium text-gray-700 hover:text-indigo-600">Analytics</Link>
                                 {user.role === 'EXPERT' && (
                                     <Link to="/dashboard/expert" className="text-sm font-medium text-gray-700 hover:text-indigo-600">Expert Studio</Link>
                                 )}

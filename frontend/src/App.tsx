@@ -12,6 +12,7 @@ import AssessmentListPage from './pages/Assessment/AssessmentListPage';
 import AssessmentTakingPage from './pages/Assessment/AssessmentTakingPage';
 import AssessmentResultPage from './pages/Assessment/AssessmentResultPage';
 import VirtualExpertPage from './pages/Mentorship/VirtualExpertPage';
+import AnalyticsDashboardPage from './pages/Analytics/AnalyticsDashboardPage';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/Layout/ProtectedRoute';
 
@@ -90,6 +91,12 @@ function App() {
           <Route path="/dashboard/expert/ask" element={
             <ProtectedRoute>
               <VirtualExpertPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/dashboard/analytics" element={
+            <ProtectedRoute>
+              <AnalyticsDashboardPage />
             </ProtectedRoute>
           } />
         </Routes>
