@@ -15,6 +15,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
                     <div className="flex items-center space-x-4">
                         {user ? (
                             <>
+                                <Link to="/dashboard" className="text-sm font-medium text-gray-700 hover:text-indigo-600">Dashboard</Link>
+                                {user.role === 'EXPERT' && (
+                                    <Link to="/dashboard/expert" className="text-sm font-medium text-gray-700 hover:text-indigo-600">Expert Studio</Link>
+                                )}
+                                <span className="h-4 w-px bg-gray-300 mx-2"></span>
                                 <span className="text-sm text-gray-600">
                                     {user.username} <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">{user.role}</span>
                                 </span>
