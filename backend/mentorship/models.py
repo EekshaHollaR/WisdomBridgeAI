@@ -3,27 +3,39 @@ from django.conf import settings
 from knowledge.models import KnowledgeModule, Scenario
 
 class MentorshipSession(models.Model):
+    class Mode(models.TextChoices):
+        LIVE = "LIVE", "Live Session"
+        ASYNC = "ASYNC", "Async Message"
+        AI_AVATAR = "AI_AVATAR", "AI Avatar"
+
     class Status(models.TextChoices):
         ACTIVE = "ACTIVE", "Active"
         COMPLETED = "COMPLETED", "Completed"
 
-    learner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="mentorship_sessions", default=1)
+    learner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="mentorship_sessions_as_learner", default=1)
+    expert = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="mentorship_sessions_as_expert")
     scenario = models.ForeignKey(Scenario, on_delete=models.SET_NULL, null=True, blank=True)
-    module = models.ForeignKey(KnowledgeModule, on_delete=models.SET_NULL, null=True, blank=True) # Optional direct link
+    module = models.ForeignKey(KnowledgeModule, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    mode = models.CharField(max_length=20, choices=Mode.choices, default=Mode.AI_AVATAR)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    
+    started_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    session_notes = models.TextField(blank=True)
+    personalization_context = models.JSONField(default=dict, blank=True, help_text="Context about learner goals/style")
 
     def __str__(self):
         return f"Session {self.id} - {self.learner.username}"
 
-class ChatMessage(models.Model):
-    class Sender(models.TextChoices):
-        AI = "AI", "AI Mentor"
-        LEARNER = "LEARNER", "Learner"
+class MentorshipMessage(models.Model):
+    class SenderType(models.TextChoices):
+        AI = "ai", "AI"
+        LEARNER = "learner", "Learner"
+        EXPERT = "expert", "Expert"
 
     session = models.ForeignKey(MentorshipSession, on_delete=models.CASCADE, related_name="messages")
-    sender = models.CharField(max_length=10, choices=Sender.choices)
+    sender_type = models.CharField(max_length=20, choices=SenderType.choices)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -31,4 +43,4 @@ class ChatMessage(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f"{self.sender}: {self.content[:30]}..."
+        return f"{self.sender_type}: {self.content[:30]}..."

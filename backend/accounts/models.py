@@ -28,6 +28,16 @@ class LearnerProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="learner_profile")
     role_title = models.CharField(max_length=255, blank=True)
     department = models.CharField(max_length=255, blank=True)
+    preferred_learning_style = models.CharField(
+        max_length=50, 
+        choices=[('VISUAL', 'Visual'), ('VERBAL', 'Verbal'), ('HANDS_ON', 'Hands-on')],
+        default='VERBAL'
+    )
+    clarity_level = models.CharField(
+        max_length=50,
+        choices=[('BEGINNER', 'Beginner'), ('INTERMEDIATE', 'Intermediate'), ('ADVANCED', 'Advanced')],
+        default='BEGINNER'
+    )
     experience_level = models.CharField(max_length=50, blank=True)
     learning_goals = models.JSONField(default=list, help_text="List of goals")
     

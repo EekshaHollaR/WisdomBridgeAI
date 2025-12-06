@@ -152,33 +152,45 @@ def generate_mentor_response(history, context):
     """
     Generates a response from the AI Mentor based on chat history and context (Scenario/Module).
     """
-    system_prompt = f"""
-    You are an expert mentor guiding a junior learner through a scenario.
-    
+    context_str = f"""
     Context:
     Scenario: {context.get('scenario_title')}
     Situation: {context.get('situation')}
     Expert Approach: {context.get('expert_approach')}
     Risks: {context.get('risks')}
     
-    Your Goal:
-    Guide the learner to understand the expert approach using Socratic questioning. 
-    Do not just give the answer immediately. Challenge their assumptions based on the 'Risks'.
-    Be encouraging but firm on quality.
+    Learner Profile:
+    - Style: {context.get('learning_style', 'General')}
+    - Level: {context.get('clarity_level', 'Intermediate')}
+    """
+
+    system_prompt = f"""
+    You are an expert mentor guiding a learner.
+    {context_str}
     
-    Maintain the persona of a senior {context.get('difficulty', 'experienced')} professional.
+    Your Goal:
+    Guide them using Socratic questioning. Adapt your explanation to their level and style.
+    - If Visual: Use metaphors and painting-pictures language.
+    - If Hands-on: Suggest practical steps.
+    - If Beginner: Use simple analogies.
+    - If Advanced: Be concise and technical.
+    
+    Maintain the persona of a senior professional.
     """
     
     messages = [{"role": "system", "content": system_prompt}]
     
     # Append history
     for msg in history:
-        role = "assistant" if msg['sender'] == 'AI' else "user"
+        # map sender_type to role
+        role = "assistant" if msg['sender_type'] == 'ai' else "user"
+        if msg['sender_type'] == 'expert': role = "assistant" # Treat expert msgs as assistant context too
+        
         messages.append({"role": role, "content": msg['content']})
         
     try:
         response = client.chat.completions.create(
-            model="gpt-4", # Use GPT-4 for better reasoning in mentorship
+            model="gpt-4", 
             messages=messages,
             temperature=0.7
         )

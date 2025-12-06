@@ -5,16 +5,16 @@ import { MainLayout } from '../../components/Layout/MainLayout';
 import { Button } from '../../components/UI/Button';
 import { Card } from '../../components/UI/Card';
 
-interface ChatMessage {
+interface MentorshipMessage {
     id: number;
-    sender: 'AI' | 'LEARNER';
+    sender_type: 'ai' | 'learner' | 'expert';
     content: string;
     created_at: string;
 }
 
 const MentorshipChatPage: React.FC = () => {
     const { id } = useParams<{ id: string }>(); // Session ID
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<MentorshipMessage[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,9 +43,9 @@ const MentorshipChatPage: React.FC = () => {
 
     const handleSend = async () => {
         if (!input.trim()) return;
-        const tempMsg: ChatMessage = {
+        const tempMsg: MentorshipMessage = {
             id: Date.now(),
-            sender: 'LEARNER',
+            sender_type: 'learner',
             content: input,
             created_at: new Date().toISOString()
         };
@@ -77,14 +77,17 @@ const MentorshipChatPage: React.FC = () => {
                 <Card className="flex-grow overflow-hidden flex flex-col p-0">
                     <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-gray-50">
                         {messages.map(msg => (
-                            <div key={msg.id} className={`flex ${msg.sender === 'LEARNER' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[80%] rounded-lg p-4 shadow-sm ${msg.sender === 'LEARNER'
-                                    ? 'bg-indigo-600 text-white rounded-br-none'
-                                    : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
+                            <div key={msg.id} className={`flex ${msg.sender_type === 'learner' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[80%] rounded-lg p-4 shadow-sm ${msg.sender_type === 'learner'
+                                        ? 'bg-indigo-600 text-white rounded-br-none'
+                                        : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
                                     }`}>
-                                    <div className="text-sm">{msg.content}</div>
-                                    <div className={`text-xs mt-1 ${msg.sender === 'LEARNER' ? 'text-indigo-200' : 'text-gray-400'}`}>
-                                        {msg.sender === 'AI' ? 'Mentor' : 'You'} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    <div className="text-sm font-semibold mb-1 opacity-75">
+                                        {msg.sender_type === 'ai' ? 'AI Mentor' : msg.sender_type === 'expert' ? 'Expert' : 'You'}
+                                    </div>
+                                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                                    <div className={`text-xs mt-1 text-right ${msg.sender_type === 'learner' ? 'text-indigo-200' : 'text-gray-400'}`}>
+                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>
                             </div>

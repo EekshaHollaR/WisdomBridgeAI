@@ -1,17 +1,20 @@
 from rest_framework import serializers
-from .models import MentorshipSession, ChatMessage
+from .models import MentorshipSession, MentorshipMessage
 from knowledge.serializers import ScenarioSerializer
 
-class ChatMessageSerializer(serializers.ModelSerializer):
+class MentorshipMessageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ChatMessage
-        fields = ['id', 'sender', 'content', 'created_at']
+        model = MentorshipMessage
+        fields = ['id', 'sender_type', 'content', 'created_at']
 
 class MentorshipSessionSerializer(serializers.ModelSerializer):
-    messages = ChatMessageSerializer(many=True, read_only=True)
+    messages = MentorshipMessageSerializer(many=True, read_only=True)
     scenario = ScenarioSerializer(read_only=True)
 
     class Meta:
         model = MentorshipSession
-        fields = ['id', 'learner', 'scenario', 'module', 'status', 'created_at', 'messages']
+        fields = [
+            'id', 'learner', 'expert', 'scenario', 'module', 'mode', 
+            'status', 'personalization_context', 'created_at', 'messages'
+        ]
         read_only_fields = ['learner', 'created_at', 'messages']
