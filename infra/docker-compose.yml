@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: wisdombridge
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../infra/Dockerfile.backend
+    volumes:
+      - ../backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env.backend
+    environment:
+      # Override DB settings to match docker service
+      DATABASE_URL: postgres://postgres:password@db:5432/wisdombridge
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../infra/Dockerfile.frontend
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    env_file:
+      - .env.frontend
+    # environment:
+    #   VITE_API_URL: http://backend:8000 (Use localhost for browser-side calls, but internal for server-side if SSR)
+    #   For pure SPA, API URL points to backend exposed port, so typically localhost:8000 or relative proxy.
+
+volumes:
+  postgres_data:
