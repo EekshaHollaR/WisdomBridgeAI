@@ -23,23 +23,39 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ("id", "username", "email", "password", "role", "profile_data")
 
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
+        return value
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
     def create(self, validated_data):
         profile_data = validated_data.pop('profile_data', {})
         role = validated_data.get('role', User.Role.LEARNER)
         
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data.get('email', ''),
-            password=validated_data['password'],
-            role=role
-        )
-        
-        if role == User.Role.EXPERT:
-            ExpertProfile.objects.create(user=user, **profile_data)
-        elif role == User.Role.LEARNER:
-            LearnerProfile.objects.create(user=user, **profile_data)
+        try:
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                email=validated_data.get('email', ''),
+                password=validated_data['password'],
+                role=role
+            )
             
-        return user
+            if role == User.Role.EXPERT:
+                ExpertProfile.objects.create(user=user, **profile_data)
+            elif role == User.Role.LEARNER:
+                LearnerProfile.objects.create(user=user, **profile_data)
+                
+            return user
+        except Exception as e:
+            # If user creation fails, make sure to clean up
+            if 'user' in locals():
+                user.delete()
+            raise serializers.ValidationError(f"Error creating user: {str(e)}")
 
 class UserDetailSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()

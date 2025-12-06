@@ -33,17 +33,21 @@ const Login: React.FC = () => {
                     {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <Input
+                            id="username"
                             label="Username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
+                            autoComplete="username"
                         />
                         <Input
+                            id="password"
                             label="Password"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            autoComplete="current-password"
                         />
                         <Button type="submit" className="w-full">Sign In</Button>
                     </form>

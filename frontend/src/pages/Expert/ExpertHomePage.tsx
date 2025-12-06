@@ -24,7 +24,6 @@ const ExpertHomePage: React.FC = () => {
     };
 
     const handleCreateSession = async () => {
-        // Simple prompt for MVP
         const title = prompt("Enter session title:");
         if (!title) return;
 
@@ -35,14 +34,12 @@ const ExpertHomePage: React.FC = () => {
             });
             const session = createRes.data;
 
-            // Auto-start (generate questions)
-            if (confirm("Generate AI questions now?")) {
-                await api.post(`/api/knowledge/sessions/${session.id}/start_interview/`, { use_ai: true });
-            }
+            await api.post(`/api/knowledge/sessions/${session.id}/start_interview/`, { use_ai: false });
 
-            navigate(`/dashboard/expert/session/${session.id}`);
+            navigate(`/dashboard/expert/interview/${session.id}`);
         } catch (error) {
             console.error("Error creating session", error);
+            alert("Failed to create session. Please try again.");
         }
     };
 
@@ -56,7 +53,7 @@ const ExpertHomePage: React.FC = () => {
             <div className="grid gap-6">
                 {sessions.length === 0 && <p className="text-gray-500">No interview sessions found. Start one above!</p>}
                 {sessions.map(session => (
-                    <Card key={session.id} className="flex justify-between items-center hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/dashboard/expert/session/${session.id}`)}>
+                    <Card key={session.id} className="flex justify-between items-center hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/dashboard/expert/interview/${session.id}`)}>
                         <div>
                             <h3 className="text-xl font-bold text-gray-800">{session.title}</h3>
                             <p className="text-sm text-gray-500">Created: {new Date(session.created_at).toLocaleDateString()}</p>
@@ -67,7 +64,7 @@ const ExpertHomePage: React.FC = () => {
                                 }`}>
                                 {session.status}
                             </span>
-                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/expert/session/${session.id}`); }}>
+                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/expert/interview/${session.id}`); }}>
                                 Continue
                             </Button>
                         </div>

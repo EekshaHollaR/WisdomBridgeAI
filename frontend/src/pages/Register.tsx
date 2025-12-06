@@ -14,28 +14,60 @@ const Register: React.FC = () => {
         role: 'LEARNER'
     });
     const [profileData, setProfileData] = useState({
-        title: '', // For Expert
-        department: '', // For both
-        role_title: '', // For Learner
+        title: '',
+        department: '',
+        role_title: '',
     });
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
         try {
             const payload = {
                 ...formData,
                 profile_data: {
                     department: profileData.department,
-                    ...(formData.role === 'EXPERT' ? { title: profileData.title } : { role_title: profileData.role_title })
+                    ...(formData.role === 'EXPERT'
+                        ? {
+                            title: profileData.title,
+                            years_experience: 5,
+                            domains_of_expertise: ["General"]
+                        }
+                        : {
+                            role_title: profileData.role_title,
+                            experience_level: "Intermediate",
+                            learning_goals: ["Growth"]
+                        }
+                    )
                 }
             };
             await api.post('/api/auth/register/', payload);
             navigate('/login');
         } catch (err: any) {
-            console.error(err);
-            setError('Registration failed. Please check your inputs.');
+            console.error('Registration error:', err.response?.data);
+
+            if (err.response?.data) {
+                const errors = err.response.data;
+                let errorMessage = '';
+
+                if (errors.username) {
+                    errorMessage = Array.isArray(errors.username) ? errors.username[0] : errors.username;
+                } else if (errors.email) {
+                    errorMessage = Array.isArray(errors.email) ? errors.email[0] : errors.email;
+                } else if (errors.password) {
+                    errorMessage = Array.isArray(errors.password) ? errors.password[0] : errors.password;
+                } else if (errors.non_field_errors) {
+                    errorMessage = Array.isArray(errors.non_field_errors) ? errors.non_field_errors[0] : errors.non_field_errors;
+                } else {
+                    errorMessage = 'Registration failed. Please check your inputs.';
+                }
+
+                setError(errorMessage);
+            } else {
+                setError('Registration failed. Please try again.');
+            }
         }
     };
 
@@ -52,6 +84,7 @@ const Register: React.FC = () => {
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                 required
+                                autoComplete="username"
                             />
                             <Input
                                 label="Email"
@@ -59,6 +92,7 @@ const Register: React.FC = () => {
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 required
+                                autoComplete="email"
                             />
                         </div>
                         <Input
@@ -67,6 +101,7 @@ const Register: React.FC = () => {
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             required
+                            autoComplete="new-password"
                         />
 
                         <div>

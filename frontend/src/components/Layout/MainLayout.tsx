@@ -19,8 +19,8 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         <Link
             to={to}
             className={`block px-4 py-2 rounded-md mb-1 text-sm font-medium transition-colors ${isActive(to)
-                    ? 'bg-indigo-100 text-indigo-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                ? 'bg-indigo-100 text-indigo-700'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
         >
             {label}
@@ -48,9 +48,9 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
                         <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                             Knowledge
                         </p>
-                        <NavItem to="/dashboard/modules" label="Learning Modules" />
+                        <NavItem to="/dashboard/knowledge/modules" label="Learning Modules" />
                         {user?.role === 'EXPERT' && (
-                            <NavItem to="/dashboard/interviews" label="Expert Studio" />
+                            <NavItem to="/dashboard/expert" label="Expert Studio" />
                         )}
                     </div>
 

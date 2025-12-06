@@ -136,3 +136,111 @@ def ask_virtual_expert(query, context):
         return response.choices[0].message.content
     except Exception as e:
         return "I cannot provide an expert opinion right now."
+
+def generate_expert_interview_questions(expert_profile, existing_questions=None):
+    if existing_questions is None:
+        existing_questions = []
+
+    prompt = f"""
+    You are an expert interviewer. 
+    Expert Profile: {expert_profile.title} - {expert_profile.bio}
+    Expertise: {expert_profile.expertise_tags}
+    
+    Previous Questions asked: {existing_questions}
+    
+    Generate 3 deep, insightful interview questions to extract their tacit knowledge on a specific topic within their expertise.
+    Return ONLY a JSON list of strings.
+    Example: ["Question 1?", "Question 2?", "Question 3?"]
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        import json
+        content = response.choices[0].message.content
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0]
+        return json.loads(content)
+    except Exception as e:
+        print(f"Error generating interview questions: {e}")
+        return [
+            "Can you tell me about a complex problem you solved recently?",
+            "What are the most common mistakes beginners make in your field?",
+            "How do you approach high-stakes decision making?"
+        ]
+
+def analyze_transcript_to_structured_notes(transcript):
+    prompt = f"""
+    Analyze this interview transcript and extract structured notes.
+    Transcript: {transcript[:4000]}... (truncated)
+    
+    Return JSON: {{ "summary": "...", "key_concepts": [], "actionable_steps": [] }}
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        import json
+        content = response.choices[0].message.content
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0]
+        return json.loads(content)
+    except Exception as e:
+        print(f"Error analyzing transcript: {e}")
+        return {"summary": "Analysis failed.", "key_concepts": [], "actionable_steps": []}
+
+def extract_knowledge_items_from_notes(notes):
+    prompt = f"""
+    From these notes, extract atomic 'Knowledge Items'.
+    Notes: {notes}
+    
+    Return JSON List of items: [ {{ "title": "...", "description": "...", "type": "PRINCIPLE|PROCEDURE", "tags": [], "importance": 1-10 }} ]
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        import json
+        content = response.choices[0].message.content
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0]
+        return json.loads(content)
+    except Exception as e:
+        print(f"Error extracting items: {e}")
+        return []
+
+def structure_session_into_modules(notes, items):
+    prompt = f"""
+    Structure this content into a Learning Module.
+    Notes: {notes}
+    Items: {items}
+    
+    Return JSON List of Modules: 
+    [ 
+      {{ 
+        "title": "...", 
+        "description": "...", 
+        "objectives": [], 
+        "difficulty": "BEGINNER",
+        "scenarios": [ {{"title": "...", "situation": "...", "approach": "...", "risks": "..."}} ],
+        "decision_tree": [ {{"id": "1", "prompt": "...", "yes_id": "2", "no_id": "3"}} ]
+      }} 
+    ]
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        import json
+        content = response.choices[0].message.content
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0]
+        return json.loads(content)
+    except Exception as e:
+        print(f"Error structuring modules: {e}")
+        return []
