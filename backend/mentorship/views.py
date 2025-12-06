@@ -81,3 +81,20 @@ class MentorshipSessionViewSet(viewsets.ModelViewSet):
         ai_msg = MentorshipMessage.objects.create(session=session, sender_type=MentorshipMessage.SenderType.AI, content=ai_response_text)
         
         return Response(MentorshipMessageSerializer(ai_msg).data)
+
+from core.openai_client import ask_virtual_expert
+
+class VirtualExpertViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def ask(self, request):
+        query = request.data.get('query')
+        context_data = request.data.get('context', '')
+        
+        if not query:
+            return Response({"error": "Query required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        expert_response = ask_virtual_expert(query, context_data)
+        
+        return Response({"answer": expert_response})

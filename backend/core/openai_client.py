@@ -1,157 +1,25 @@
-import os
-import json
+from django.conf import settings
 from openai import OpenAI
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-def generate_expert_interview_questions(expert_profile, existing_sessions):
-    """
-    Generates a list of interview questions based on the expert's profile and history.
-    """
+def generate_learning_path(goal, experience_level):
     prompt = f"""
-    You are an expert interviewer extracting tacit knowledge from a senior expert.
-    
-    Expert Profile:
-    Title: {expert_profile.title}
-    Department: {expert_profile.department}
-    Expertise: {expert_profile.domains_of_expertise}
-    Years Experience: {expert_profile.years_experience}
-    
-    Generate 5 deep, situational interview questions that uncover decision-making models, 
-    hidden heuristics, and lessons learned. Focus on 'why' and 'how'.
-    
-    Return ONLY a JSON array of strings.
+    Create a detailed learning path for a learner with {experience_level} experience who wants to: {goal}.
+    Return a JSON structure with list of modules, each having title, description, easy/medium/hard difficulty, and estimated hours.
+    MAX 5 modules.
     """
-    
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
         )
-        content = response.choices[0].message.content
-        data = json.loads(content)
-        return data.get("questions", data if isinstance(data, list) else [])
+        return response.choices[0].message.content
     except Exception as e:
-        print(f"Error generating questions: {e}")
-        return ["Describe a challenging project you worked on.", "What is a key lesson you've learned?"]
-
-def analyze_transcript_to_structured_notes(transcript):
-    """
-    Analyzes raw transcript to produce structured notes with sections, bullets, and concepts.
-    """
-    prompt = f"""
-    Analyze the following interview transcript and structure the key insights.
-    
-    Transcript:
-    {transcript[:15000]} # Limit context
-    
-    Output JSON with keys:
-    - summary: string
-    - key_takeaways: list of strings
-    - core_concepts: list of strings
-    - action_items: list of strings
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": "You are a knowledge analyst."}, {"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        content = response.choices[0].message.content
-        return json.loads(content)
-    except Exception as e:
-        print(f"Error analyzing transcript: {e}")
-        return {"summary": "Analysis failed", "error": str(e)}
-
-def extract_knowledge_items_from_notes(notes):
-    """
-    Extracts atomic knowledge items from structured notes.
-    """
-    prompt = f"""
-    Based on these notes, extract atomic Knowledge Items (principles, procedures, decision frameworks).
-    
-    Notes: {json.dumps(notes)}
-    
-    Return a JSON object with a key "items" containing a list of objects, each with:
-    - title: string
-    - description: string
-    - type: "procedure" | "principle" | "framework" | "scenario"
-    - tags: list of strings
-    - importance: integer (1-5)
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": "You are a knowledge engineer."}, {"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        content = response.choices[0].message.content
-        data = json.loads(content)
-        return data.get("items", [])
-    except Exception as e:
-        print(f"Error extracting knowledge items: {e}")
-        return []
-
-def structure_session_into_modules(notes, knowledge_items):
-    """
-    Transforms structured notes and atomic items into learning modules, scenarios, and decision trees.
-    """
-    prompt = f"""
-    You are an instructional designer. Transform these interview insights into a structured Knowledge Module.
-    
-    Source Material:
-    Notes: {json.dumps(notes)[:2000]}
-    Items: {json.dumps(knowledge_items)[:2000]}
-    
-    Create a JSON structure:
-    {{
-        "modules": [
-            {{
-                "title": "Module Title",
-                "description": "...",
-                "objectives": ["obj1", "obj2"],
-                "difficulty": "INTERMEDIATE",
-                "scenarios": [
-                    {{
-                        "title": "Scenario 1",
-                        "situation": "...",
-                        "approach": "...",
-                        "risks": "..."
-                    }}
-                ],
-                "decision_tree": [
-                    {{
-                        "id": "node1",
-                        "prompt": "Is the system responsive?",
-                        "yes_id": "node2",
-                        "no_id": "node3"
-                    }}
-                ]
-            }}
-        ]
-    }}
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": "You are a curriculum architect."}, {"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        content = response.choices[0].message.content
-        data = json.loads(content)
-        return data.get("modules", [])
-    except Exception as e:
-        print(f"Error structuring modules: {e}")
-        return []
+        print(f"Error generating learning path: {e}")
+        return "[]"
 
 def generate_mentor_response(history, context):
-    """
-    Generates a response from the AI Mentor based on chat history and context (Scenario/Module).
-    """
     context_str = f"""
     Context:
     Scenario: {context.get('scenario_title')}
@@ -184,7 +52,7 @@ def generate_mentor_response(history, context):
     for msg in history:
         # map sender_type to role
         role = "assistant" if msg['sender_type'] == 'ai' else "user"
-        if msg['sender_type'] == 'expert': role = "assistant" # Treat expert msgs as assistant context too
+        if msg['sender_type'] == 'expert': role = "assistant" 
         
         messages.append({"role": role, "content": msg['content']})
         
@@ -198,3 +66,73 @@ def generate_mentor_response(history, context):
     except Exception as e:
         print(f"Error generating mentor response: {e}")
         return "I'm having trouble connecting to my knowledge base right now. What do you think is the next best step?"
+
+def generate_assessment_questions(module_title, content, num_questions=5):
+    system_prompt = f"""
+    You are an expert examiner. Create {num_questions} assessment questions based on the content below.
+    Return ONLY valid JSON in this format:
+    [
+        {{
+            "question_type": "MCQ", 
+            "prompt": "Question text", 
+            "options": ["A", "B", "C", "D"], 
+            "correct_answer": "A",
+            "weight": 1.0
+        }},
+        {{
+            "question_type": "OPEN_ENDED", 
+            "prompt": "Question text", 
+            "options": null,
+            "correct_answer": "Key points related to...",
+            "weight": 2.0
+        }}
+    ]
+    """
+    
+    user_prompt = f"Module: {module_title}\n\nContent Summary: {content[:2000]}"
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7
+        )
+        import json
+        content = response.choices[0].message.content
+        # Basic cleanup if GPT adds markdown code blocks
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0]
+        return json.loads(content)
+    except Exception as e:
+        print(f"Error generating assessment: {e}")
+        return []
+
+def ask_virtual_expert(query, context):
+    system_prompt = f"""
+    You are an expert consultant with deep domain knowledge.
+    
+    Context:
+    {context}
+    
+    Your Decision Style:
+    - Analytical and risk-aware.
+    - Draws from past experiences (simulated).
+    - Direct and actionable advice.
+    
+    Answer the user's query as this expert.
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": query}
+            ],
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return "I cannot provide an expert opinion right now."

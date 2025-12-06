@@ -8,6 +8,10 @@ import KnowledgeModuleDetailPage from './pages/Knowledge/KnowledgeModuleDetailPa
 import LearningPathsPage from './pages/Knowledge/LearningPathsPage';
 import MentorshipHomePage from './pages/Mentorship/MentorshipHomePage';
 import MentorshipSessionPage from './pages/Mentorship/MentorshipSessionPage';
+import AssessmentListPage from './pages/Assessment/AssessmentListPage';
+import AssessmentTakingPage from './pages/Assessment/AssessmentTakingPage';
+import AssessmentResultPage from './pages/Assessment/AssessmentResultPage';
+import VirtualExpertPage from './pages/Mentorship/VirtualExpertPage';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/Layout/ProtectedRoute';
 
@@ -64,6 +68,28 @@ function App() {
           <Route path="/dashboard/mentorship/session/:id" element={
             <ProtectedRoute>
               <MentorshipSessionPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Phase 4 Routes */}
+          <Route path="/dashboard/assessments" element={
+            <ProtectedRoute>
+              <AssessmentListPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/assessment/take/:attemptId" element={
+            <ProtectedRoute>
+              <AssessmentTakingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/assessment/result/:attemptId" element={
+            <ProtectedRoute>
+              <AssessmentResultPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/expert/ask" element={
+            <ProtectedRoute>
+              <VirtualExpertPage />
             </ProtectedRoute>
           } />
         </Routes>
