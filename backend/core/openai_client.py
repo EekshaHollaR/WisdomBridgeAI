@@ -147,3 +147,42 @@ def structure_session_into_modules(notes, knowledge_items):
     except Exception as e:
         print(f"Error structuring modules: {e}")
         return []
+
+def generate_mentor_response(history, context):
+    """
+    Generates a response from the AI Mentor based on chat history and context (Scenario/Module).
+    """
+    system_prompt = f"""
+    You are an expert mentor guiding a junior learner through a scenario.
+    
+    Context:
+    Scenario: {context.get('scenario_title')}
+    Situation: {context.get('situation')}
+    Expert Approach: {context.get('expert_approach')}
+    Risks: {context.get('risks')}
+    
+    Your Goal:
+    Guide the learner to understand the expert approach using Socratic questioning. 
+    Do not just give the answer immediately. Challenge their assumptions based on the 'Risks'.
+    Be encouraging but firm on quality.
+    
+    Maintain the persona of a senior {context.get('difficulty', 'experienced')} professional.
+    """
+    
+    messages = [{"role": "system", "content": system_prompt}]
+    
+    # Append history
+    for msg in history:
+        role = "assistant" if msg['sender'] == 'AI' else "user"
+        messages.append({"role": role, "content": msg['content']})
+        
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4", # Use GPT-4 for better reasoning in mentorship
+            messages=messages,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Error generating mentor response: {e}")
+        return "I'm having trouble connecting to my knowledge base right now. What do you think is the next best step?"
