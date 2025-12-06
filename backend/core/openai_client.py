@@ -94,3 +94,56 @@ def extract_knowledge_items_from_notes(notes):
     except Exception as e:
         print(f"Error extracting knowledge items: {e}")
         return []
+
+def structure_session_into_modules(notes, knowledge_items):
+    """
+    Transforms structured notes and atomic items into learning modules, scenarios, and decision trees.
+    """
+    prompt = f"""
+    You are an instructional designer. Transform these interview insights into a structured Knowledge Module.
+    
+    Source Material:
+    Notes: {json.dumps(notes)[:2000]}
+    Items: {json.dumps(knowledge_items)[:2000]}
+    
+    Create a JSON structure:
+    {{
+        "modules": [
+            {{
+                "title": "Module Title",
+                "description": "...",
+                "objectives": ["obj1", "obj2"],
+                "difficulty": "INTERMEDIATE",
+                "scenarios": [
+                    {{
+                        "title": "Scenario 1",
+                        "situation": "...",
+                        "approach": "...",
+                        "risks": "..."
+                    }}
+                ],
+                "decision_tree": [
+                    {{
+                        "id": "node1",
+                        "prompt": "Is the system responsive?",
+                        "yes_id": "node2",
+                        "no_id": "node3"
+                    }}
+                ]
+            }}
+        ]
+    }}
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "system", "content": "You are a curriculum architect."}, {"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        content = response.choices[0].message.content
+        data = json.loads(content)
+        return data.get("modules", [])
+    except Exception as e:
+        print(f"Error structuring modules: {e}")
+        return []

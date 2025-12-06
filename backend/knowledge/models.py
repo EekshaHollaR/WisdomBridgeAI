@@ -58,3 +58,54 @@ class KnowledgeItem(models.Model):
 
     def __str__(self):
         return self.title
+
+# --- Phase 2 Models ---
+
+class KnowledgeModule(models.Model):
+    session = models.ForeignKey(KnowledgeInterviewSession, on_delete=models.SET_NULL, null=True, related_name='generated_modules')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    objectives = models.JSONField(default=list, blank=True)
+    difficulty_level = models.CharField(
+        max_length=20, 
+        choices=[('BEGINNER', 'Beginner'), ('INTERMEDIATE', 'Intermediate'), ('ADVANCED', 'Advanced')],
+        default='BEGINNER'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+class Scenario(models.Model):
+    module = models.ForeignKey(KnowledgeModule, on_delete=models.CASCADE, related_name='scenarios')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    situation_prompt = models.TextField(help_text="The context presented to the learner")
+    recommended_approach = models.TextField(help_text="The expert's way")
+    risks_to_consider = models.TextField(blank=True)
+    tags = models.JSONField(default=list, blank=True)
+
+    def __str__(self):
+        return self.title
+
+class DecisionNode(models.Model):
+    module = models.ForeignKey(KnowledgeModule, on_delete=models.CASCADE, related_name='decision_tree')
+    prompt = models.TextField()
+    # Self-referencing FKs need a string reference usually, or 'self'
+    next_if_yes = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='yes_predecessors')
+    next_if_no = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='no_predecessors')
+    notes = models.TextField(blank=True)
+    is_terminal = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.prompt[:50]
+
+class LearningPath(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    target_role = models.CharField(max_length=100)
+    modules = models.ManyToManyField(KnowledgeModule, related_name='learning_paths')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.name
